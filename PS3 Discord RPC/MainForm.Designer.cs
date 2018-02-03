@@ -13,6 +13,7 @@
         /// <param name="disposing">true se for necessário descartar os recursos gerenciados; caso contrário, false.</param>
         protected override void Dispose(bool disposing)
         {
+            SaveConfigs();
             if (disposing && (components != null))
             {
                 components.Dispose();
@@ -41,6 +42,8 @@
             this.CPUTempLabel = new System.Windows.Forms.Label();
             this.PowerOffBtn = new System.Windows.Forms.Button();
             this.RestartPS3Btn = new System.Windows.Forms.Button();
+            this.startupTestCB = new System.Windows.Forms.CheckBox();
+            this.startupConnectCB = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.GameIconImageBox)).BeginInit();
             this.SuspendLayout();
@@ -74,7 +77,7 @@
             // statusLabel
             // 
             this.statusLabel.AutoSize = true;
-            this.statusLabel.Location = new System.Drawing.Point(321, 11);
+            this.statusLabel.Location = new System.Drawing.Point(12, 35);
             this.statusLabel.Name = "statusLabel";
             this.statusLabel.Size = new System.Drawing.Size(49, 13);
             this.statusLabel.TabIndex = 3;
@@ -82,6 +85,7 @@
             // 
             // connectBtn
             // 
+            this.connectBtn.Enabled = false;
             this.connectBtn.Location = new System.Drawing.Point(407, 35);
             this.connectBtn.Name = "connectBtn";
             this.connectBtn.Size = new System.Drawing.Size(108, 23);
@@ -120,9 +124,9 @@
             this.GameLabel.AutoSize = true;
             this.GameLabel.Location = new System.Drawing.Point(7, 74);
             this.GameLabel.Name = "GameLabel";
-            this.GameLabel.Size = new System.Drawing.Size(41, 13);
+            this.GameLabel.Size = new System.Drawing.Size(75, 13);
             this.GameLabel.TabIndex = 2;
-            this.GameLabel.Text = "GAME:";
+            this.GameLabel.Text = "Current Game:";
             // 
             // RSXTempLabel
             // 
@@ -162,11 +166,34 @@
             this.RestartPS3Btn.UseVisualStyleBackColor = true;
             this.RestartPS3Btn.Click += new System.EventHandler(this.RestartPS3Btn_Click);
             // 
+            // startupTestCB
+            // 
+            this.startupTestCB.AutoSize = true;
+            this.startupTestCB.Location = new System.Drawing.Point(12, 68);
+            this.startupTestCB.Name = "startupTestCB";
+            this.startupTestCB.Size = new System.Drawing.Size(156, 17);
+            this.startupTestCB.TabIndex = 8;
+            this.startupTestCB.Text = "Test Connection on Startup";
+            this.startupTestCB.UseVisualStyleBackColor = true;
+            // 
+            // startupConnectCB
+            // 
+            this.startupConnectCB.AutoSize = true;
+            this.startupConnectCB.Location = new System.Drawing.Point(174, 68);
+            this.startupConnectCB.Name = "startupConnectCB";
+            this.startupConnectCB.Size = new System.Drawing.Size(118, 17);
+            this.startupConnectCB.TabIndex = 9;
+            this.startupConnectCB.Text = "Connect on Startup";
+            this.startupConnectCB.UseVisualStyleBackColor = true;
+            this.startupConnectCB.CheckedChanged += new System.EventHandler(this.startupConnectCB_CheckedChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(527, 228);
+            this.Controls.Add(this.startupConnectCB);
+            this.Controls.Add(this.startupTestCB);
             this.Controls.Add(this.RestartPS3Btn);
             this.Controls.Add(this.PowerOffBtn);
             this.Controls.Add(this.groupBox1);
@@ -175,6 +202,7 @@
             this.Controls.Add(this.ps3AddressLabel);
             this.Controls.Add(this.testConnectionButton);
             this.Controls.Add(this.ps3AddressTextBox);
+            this.MaximizeBox = false;
             this.Name = "MainForm";
             this.Text = "PlayStation®3 Discord Rich Presence";
             this.groupBox1.ResumeLayout(false);
@@ -199,6 +227,8 @@
         public System.Windows.Forms.Label RSXTempLabel;
         public System.Windows.Forms.Label GameLabel;
         private System.Windows.Forms.PictureBox GameIconImageBox;
+        private System.Windows.Forms.CheckBox startupTestCB;
+        private System.Windows.Forms.CheckBox startupConnectCB;
     }
 }
 
