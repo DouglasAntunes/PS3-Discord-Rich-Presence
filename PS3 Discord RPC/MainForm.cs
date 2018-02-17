@@ -1,156 +1,178 @@
-﻿using HtmlAgilityPack;
-using System;
-using System.Configuration;
-using System.Net;
-using System.Net.NetworkInformation;
+﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace PS3DiscordRPCApp
 {
     public partial class MainForm : Form
     {
-        bool testedOK = false;
-        bool connected = false;
+        internal bool _connected = false;
+        private bool _rpcSwitch = false;
 
-        System.Threading.Timer updateTimer;
+        bool RPCSwitch
+        {
+            get => _rpcSwitch;
+            set
+            {
+                _rpcSwitch = value;
+                OnShareSwitch();
+            }
+        }
 
-        private DiscordController DiscordController { get; set; } = new DiscordController();
-
+        internal DiscordController DiscordController = Program.DiscordController;
+        internal Configuration Config = Program.Config;
+        internal PS3 ps3 = Program.PS3;
+        
         public MainForm()
         {
             InitializeComponent();
-            LoadConfigs();
+            ps3.Updated += Ps3_onUpdate;
             DiscordController.Initialize();
-            DiscordRPC.UpdatePresence(ref DiscordController.presence);
-            if (startupTestCB.Checked)
+            RPCSwitch = Config.EnableRichPresenceOnConnect;
+            if (Config.TestConnectionOnStartup)
             {
-                testConnectionButton_Click(this, null);
-                if(startupConnectCB.Checked)
+                TestPS3Connection();
+                if (Config.ConnectOnStartup)
                 {
-                    connectBtn_Click(this, null);
+                    if(ps3.CurrentStatusFlag == PS3.Status.Tested)
+                    {
+                        ConnectToPS3();
+                    }
                 }
             }
         }
 
-        private void testConnectionButton_Click(object sender, EventArgs e)
+        private void Ps3_onUpdate(object sender, EventArgs e)
         {
-            Ping x = new Ping();
-            PingReply reply = x.Send(IPAddress.Parse(ps3AddressTextBox.Text)); //enter ip of the machine
-            if (reply.Status == IPStatus.Success) // here we check for the reply status if it is success it means the host is reachable
+            UpdateStats();
+        }
+
+        private void MainForm_Shown(object sender, EventArgs e)
+        {
+            if (Config.FirstLaunch)
             {
-                statusLabel.Text = $"Status: -- {reply.RoundtripTime.ToString()}ms";
-                HtmlWeb web = new HtmlWeb();
-                try
-                {
-                    HtmlAgilityPack.HtmlDocument htmlDoc = web.Load($"http://{ps3AddressTextBox.Text}/cpursx.ps3");
-                    var node = htmlDoc.DocumentNode.SelectSingleNode("//body/font/b");
-                    if (node != null && node.InnerText.Contains("webMAN"))
-                    {
-                        statusLabel.Text = $"Status: OK {reply.RoundtripTime.ToString()}ms";
-                        Tested(true);
-                    }
-                    else
-                    {
-                        statusLabel.Text = $"Status: webMAN not detected";
-                        Tested(false);
-                    }
-                }
-                catch(WebException) //Refused Connection
-                {
-                    statusLabel.Text = $"Status: Refused Connection";
-                    Tested(false);
-                }
-                
-            }
-            else  //if host is not reachable.
-            {
-                statusLabel.Text = "Status: Not Reachable. Wrong IP?";
-                Tested(false);
+                ShowConfigurationForm();
             }
         }
 
-        private void connectBtn_Click(object sender, EventArgs e)
+        private void ConnectBtn_Click(object sender, EventArgs e)
         {
-            if (connected)
+            TestPS3Connection();
+            if (ps3.CurrentStatusFlag == PS3.Status.Tested)
             {
-                updateTimer.Dispose();
-                connected = false;
-                connectBtn.Text = "Connect";
-                UpdateLabels(" ", " ", " ", " ");
+                ConnectToPS3();
             }
-            else
-            {
-                updateTimer = new System.Threading.Timer((es) =>
-                {
-                    UpdateStats();
-                }, null, TimeSpan.Zero, TimeSpan.FromMinutes(0.25));
-                connected = true;
-                connectBtn.Text = "Disconnect";
-            }
-
         }
 
         private void RestartPS3Btn_Click(object sender, EventArgs e)
         {
-            WebRequest wrGet = WebRequest.Create($"http://{ps3AddressTextBox.Text}/restart.ps3");
-            var a = wrGet.GetResponse();
+            ps3.Restart();
         }
 
         private void PowerOffBtn_Click(object sender, EventArgs e)
         {
-            WebRequest wrGet = WebRequest.Create($"http://{ps3AddressTextBox.Text}/shutdown.ps3");
-            var a = wrGet.GetResponse();
+            if(_connected)
+            {
+                ConnectBtn_Click(this, EventArgs.Empty);
+            }
+            ps3.PowerOff();
+        }
+
+        private void ConfigBtn_Click(object sender, EventArgs e)
+        {
+            ShowConfigurationForm();
+        }
+
+        private void AboutBtn_Click(object sender, EventArgs e) => Program.AboutForm.ShowDialog();
+
+        private void ShareBtn_Click(object sender, EventArgs e)
+        {
+            RPCSwitch = !RPCSwitch;
+        }
+
+        private void OnShareSwitch()
+        {
+            if (RPCSwitch)
+            {
+                ShareBtn.Text = "Unshare Current Game";
+            }
+            else
+            {
+                ShareBtn.Text = "Share Current Game";
+            }
+        }
+        
+        public void OnConfigUpdate()
+        {
+            ps3.ConsoleIP = Config.PS3_IP;
+            ps3.TemperatureScale = (Config.UseCelsiusForTemperature ? PS3.TempScale.Celsius : PS3.TempScale.Fahrenheit);
+        }
+
+        private void TestPS3Connection()
+        {
+            ps3.TestConnection();
+            StatusLabel.Text = ps3.CurrentStatusString;
+            StatusLabel.ForeColor = (
+                (ps3.CurrentStatusFlag == PS3.Status.Tested || ps3.CurrentStatusFlag == PS3.Status.Connected) ? Color.DarkGreen : Color.DarkRed
+            );
+        }
+
+        private void ConnectToPS3()
+        {
+            if (_connected)
+            {
+                ps3.Disconnect();
+                _connected = false;
+                ConnectBtn.Text = "Connect";
+                UpdateLabels(" ", " ", " ", " ");
+            }
+            else
+            {
+                ps3.Connect();
+                _connected = true;
+                ConnectBtn.Text = "Disconnect";
+            }
         }
 
         private void UpdateStats()
         {
-            //Vars to update
-            string cpuTemp = " ",
-                   rsxTemp = " ",
-                   gameCode = "",
-                   gameName = "none",
-                   gameIconPath = " ";
-            //
-            HtmlWeb web = new HtmlWeb();
-            HtmlAgilityPack.HtmlDocument htmlDoc = web.Load($"http://{ps3AddressTextBox.Text}/cpursx.ps3");
+            var scaleString = (ps3.TemperatureScale == PS3.TempScale.Celsius ? "°C" : "°F");
+            var cpuTemp = ps3.CPUTemp.ToString() + scaleString;
+            var rsxTemp = ps3.RSXTemp.ToString() + scaleString;
 
-            //var node = htmlDoc.DocumentNode.SelectSingleNode("//body/font/b");
-            var node2 = htmlDoc.DocumentNode.SelectSingleNode("//body/font/font/b/a[1]");   //1 para C e 2 para F
-            var node3 = htmlDoc.DocumentNode.SelectNodes("//body/font/span/h2/a");
+            UpdateLabels(cpuTemp, rsxTemp, ps3.CurrentGameName, ps3.CurrentGameIconURL);
+            UpdateDiscordRP();
+        }
 
-            //Console.WriteLine(node.InnerText);
-            var b = node2.InnerText.Split(' ');
-            cpuTemp = b[1];
-            rsxTemp = b[4];
-            //Console.WriteLine(node2.InnerText);
-
-            if (node3 != null)
+        private void UpdateDiscordRP()
+        {
+            if(RPCSwitch)
             {
-                gameCode = node3[0].InnerText;
-                gameName = node3[1].InnerText;
-                gameIconPath = $"http://{ps3AddressTextBox.Text}{node3[2].GetAttributeValue("href", " ")}/ICON0.PNG";
-                //Console.WriteLine(node3[1].InnerText);
-            }
-            UpdateLabels(cpuTemp, rsxTemp, gameName, gameIconPath);
-            if (gameName != "none")
-            {
-                DiscordController.presence = new DiscordRPC.RichPresence()
+                if (ps3.CurrentGameName != "none")
                 {
-                    largeImageKey = gameCode.ToLower(),
-                    largeImageText = $"{ gameName } [{ gameCode }]",
-                    state = "In Game",
-                    details = $"{gameName} [{gameCode}]",
-                };
+                    DiscordController.presence = new DiscordRPC.RichPresence()
+                    {
+                        largeImageKey = ps3.CurrentGameCode.ToLower(),
+                        largeImageText = $"{ ps3.CurrentGameName } [{ ps3.CurrentGameCode }]",
+                        state = "In Game",
+                        details = $"{ps3.CurrentGameName} [{ps3.CurrentGameCode}]",
+                    };
+                }
+                else
+                {
+                    DiscordController.presence = new DiscordRPC.RichPresence()
+                    {
+                        details = "In XMB",
+                        largeImageKey = "xmb",
+                        largeImageText = "XrossMediaBar (Menu)",
+                    };
+                }
             }
             else
             {
-                DiscordController.presence = new DiscordRPC.RichPresence()
-                {
-                    details = "In XMB",
-                    largeImageKey = "xmb",
-                    largeImageText = "XrossMediaBar (Menu)",
-                };
+                DiscordController.presence = new DiscordRPC.RichPresence();
             }
+            
             DiscordRPC.UpdatePresence(ref DiscordController.presence);
         }
 
@@ -174,114 +196,6 @@ namespace PS3DiscordRPCApp
             }));
         }
 
-        private void SaveConfigs()
-        {
-            AddUpdateAppSettings("PS3 IP", ps3AddressTextBox.Text);
-
-            if (startupTestCB.Checked)
-            {
-                AddUpdateAppSettings("Test Connection on Startup", "true");
-            }
-            else
-            {
-                AddUpdateAppSettings("Test Connection on Startup", "false");
-            }
-
-            if (startupConnectCB.Checked)
-            {
-                AddUpdateAppSettings("Connect on Startup", "true");
-            }
-            else
-            {
-                AddUpdateAppSettings("Connect on Startup", "false");
-            }
-        }
-
-        private void LoadConfigs()
-        {
-            try
-            {
-                var appSettings = ConfigurationManager.AppSettings;
-                if (appSettings.Count == 0)
-                {
-                    Console.WriteLine("AppSettings is empty. It will be created on the first exit.");
-                }
-                else
-                {
-                    ps3AddressTextBox.Text = appSettings["PS3 IP"];
-
-                    if (appSettings["Test Connection on Startup"] == "true")
-                    {
-                        startupTestCB.Checked = true;
-                    }
-                    else
-                    {
-                        startupTestCB.Checked = false;
-                    }
-
-                    if (appSettings["Connect on Startup"] == "true")
-                    {
-                        startupConnectCB.Checked = true;
-                    }
-                    else
-                    {
-                        startupConnectCB.Checked = false;
-                    }
-
-                }
-            }
-            catch (ConfigurationErrorsException)
-            {
-                Console.WriteLine("Error reading app settings");
-                Environment.Exit(1);
-            }
-        }
-
-        private static void AddUpdateAppSettings(string key, string value)
-        {
-            try
-            {
-                var configFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                var settings = configFile.AppSettings.Settings;
-                if (settings[key] == null)
-                {
-                    settings.Add(key, value);
-                }
-                else
-                {
-                    settings[key].Value = value;
-                }
-                configFile.Save(ConfigurationSaveMode.Modified);
-                ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
-            }
-            catch (ConfigurationErrorsException)
-            {
-                Console.WriteLine("Error writing app settings");
-            }
-        }
-
-        private void Tested(bool state)
-        {
-            if(state)
-            {
-                testedOK = true;
-                connectBtn.Enabled = true;
-                ps3AddressTextBox.Enabled = false;
-            }
-            else
-            {
-                testedOK = false;
-                connectBtn.Enabled = false;
-                ps3AddressTextBox.Enabled = true;
-            }
-        }
-
-        private void startupConnectCB_CheckedChanged(object sender, EventArgs e)
-        {
-            if(startupConnectCB.Checked)
-            {
-                startupTestCB.Checked = true;
-            }
-        }
+        private void ShowConfigurationForm() => Program.ConfigurationForm.ShowDialog();
     }
 }

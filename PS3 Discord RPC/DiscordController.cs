@@ -6,8 +6,10 @@ namespace PS3DiscordRPCApp
     {
         public DiscordRPC.RichPresence presence;
         DiscordRPC.EventHandlers handlers;
-        public string applicationId = "407260536586371098";
-        public string optionalSteamId;
+        public static readonly string DefaultApplicationID = "407260536586371098";
+        public string ApplicationID { get; set; } = DefaultApplicationID;
+        public string OptionalSteamID { get; set; }
+        
 
         /// <summary>
         ///     Initializes Discord RPC
@@ -18,7 +20,12 @@ namespace PS3DiscordRPCApp
             handlers.readyCallback = ReadyCallback;
             handlers.disconnectedCallback += DisconnectedCallback;
             handlers.errorCallback += ErrorCallback;
-            DiscordRPC.Initialize(applicationId, ref handlers, true, optionalSteamId);
+            DiscordRPC.Initialize(ApplicationID, ref handlers, true, OptionalSteamID);
+        }
+
+        public void Shutdown()
+        {
+            DiscordRPC.Shutdown();
         }
 
         public void ReadyCallback()
