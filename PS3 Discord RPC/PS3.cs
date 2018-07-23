@@ -45,6 +45,16 @@ namespace PS3DiscordRPCApp
         public event EventHandler Connected;
         public event EventHandler Updated;
 
+        public PS3()
+        {
+
+        }
+
+        public PS3(String IP) : this()
+        {
+            ConsoleIP = IP;
+        }
+
         internal void Connect()
         {
             if(CurrentStatusFlag == Status.Tested)
@@ -75,11 +85,11 @@ namespace PS3DiscordRPCApp
             HtmlDocument htmlDoc = web.Load($"http://{ConsoleIP}/cpursx.ps3");
 
             //var node = htmlDoc.DocumentNode.SelectSingleNode("//body/font/b");
-            var node2 = htmlDoc.DocumentNode.SelectSingleNode($"//body/font/font/b/a[{(int)TemperatureScale}]");   //1 for °C e 2 for °F
-            var node3 = htmlDoc.DocumentNode.SelectNodes("//body/font/span/h2/a");
+            var tempNode = htmlDoc.DocumentNode.SelectSingleNode($"//body/font/font/b/a[{(int)TemperatureScale}]");   //1 for °C e 2 for °F
+            var gameInfoNode = htmlDoc.DocumentNode.SelectNodes("//body/font/span/h2/a");
 
             //Console.WriteLine(node.InnerText);
-            var b = node2.InnerText.Split(' ');
+            var b = tempNode.InnerText.Split(' ');
             var cpuTemp = b[1];
             var rsxTemp = b[4];
             var remScaleString = (TemperatureScale == TempScale.Celsius ? "°C" : "°F");
@@ -87,11 +97,11 @@ namespace PS3DiscordRPCApp
             CPUTemp = int.Parse(cpuTemp.Replace(remScaleString, ""));
             RSXTemp = int.Parse(rsxTemp.Replace(remScaleString, ""));
 
-            if (node3 != null)
+            if (gameInfoNode != null)
             {
-                CurrentGameCode = node3[0].InnerText;
-                CurrentGameName = node3[1].InnerText;
-                CurrentGameIconURL = $"http://{ConsoleIP}{node3[2].GetAttributeValue("href", " ")}/ICON0.PNG";
+                CurrentGameCode = gameInfoNode[0].InnerText;
+                CurrentGameName = gameInfoNode[1].InnerText;
+                CurrentGameIconURL = $"http://{ConsoleIP}{gameInfoNode[2].GetAttributeValue("href", " ")}/ICON0.PNG";
                 //Console.WriteLine(node3[1].InnerText);
             }
             else

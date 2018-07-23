@@ -13,9 +13,6 @@
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            LoadOptionsToObject();
-            //Config.SaveAndReload();
-            Config.Save();
             if (disposing && (components != null))
             {
                 components.Dispose();
@@ -33,21 +30,21 @@
         {
             this.DiscordAppIdLabel = new System.Windows.Forms.LinkLabel();
             this.SaveAndCloseBtn = new System.Windows.Forms.Button();
-            this.DiscordAppIDDefaultCB = new System.Windows.Forms.CheckBox();
-            this.DiscordAppIDTextBox = new System.Windows.Forms.TextBox();
             this.ps3AddressLabel = new System.Windows.Forms.Label();
-            this.PS3AddressTextBox = new System.Windows.Forms.TextBox();
-            this.StartupConnectCB = new System.Windows.Forms.CheckBox();
-            this.StartupTestCB = new System.Windows.Forms.CheckBox();
             this.TestConnectionBtn = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.ps3Status = new System.Windows.Forms.Label();
+            this.PS3AddressTextBox = new System.Windows.Forms.TextBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.ShareGameOnStartupCB = new System.Windows.Forms.CheckBox();
             this.label1 = new System.Windows.Forms.Label();
             this.FahrenheitRB = new System.Windows.Forms.RadioButton();
             this.CelsiusRB = new System.Windows.Forms.RadioButton();
+            this.StartupTestCB = new System.Windows.Forms.CheckBox();
+            this.StartupConnectCB = new System.Windows.Forms.CheckBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.DiscordAppIDTextBox = new System.Windows.Forms.TextBox();
+            this.DiscordAppIDDefaultCB = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -74,27 +71,6 @@
             this.SaveAndCloseBtn.UseVisualStyleBackColor = true;
             this.SaveAndCloseBtn.Click += new System.EventHandler(this.SaveAndCloseBtn_Click);
             // 
-            // DiscordAppIDDefaultCB
-            // 
-            this.DiscordAppIDDefaultCB.AutoSize = true;
-            this.DiscordAppIDDefaultCB.Checked = true;
-            this.DiscordAppIDDefaultCB.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.DiscordAppIDDefaultCB.Location = new System.Drawing.Point(385, 21);
-            this.DiscordAppIDDefaultCB.Name = "DiscordAppIDDefaultCB";
-            this.DiscordAppIDDefaultCB.Size = new System.Drawing.Size(82, 17);
-            this.DiscordAppIDDefaultCB.TabIndex = 10;
-            this.DiscordAppIDDefaultCB.Text = "Use Default";
-            this.DiscordAppIDDefaultCB.UseVisualStyleBackColor = true;
-            this.DiscordAppIDDefaultCB.CheckedChanged += new System.EventHandler(this.DiscordAppIDDefaultCB_CheckedChanged);
-            // 
-            // DiscordAppIDTextBox
-            // 
-            this.DiscordAppIDTextBox.Enabled = false;
-            this.DiscordAppIDTextBox.Location = new System.Drawing.Point(122, 19);
-            this.DiscordAppIDTextBox.Name = "DiscordAppIDTextBox";
-            this.DiscordAppIDTextBox.Size = new System.Drawing.Size(257, 20);
-            this.DiscordAppIDTextBox.TabIndex = 9;
-            // 
             // ps3AddressLabel
             // 
             this.ps3AddressLabel.AutoSize = true;
@@ -103,35 +79,6 @@
             this.ps3AddressLabel.Size = new System.Drawing.Size(64, 13);
             this.ps3AddressLabel.TabIndex = 5;
             this.ps3AddressLabel.Text = "PS3 LAN IP";
-            // 
-            // PS3AddressTextBox
-            // 
-            this.PS3AddressTextBox.Location = new System.Drawing.Point(81, 19);
-            this.PS3AddressTextBox.MaxLength = 15;
-            this.PS3AddressTextBox.Name = "PS3AddressTextBox";
-            this.PS3AddressTextBox.Size = new System.Drawing.Size(107, 20);
-            this.PS3AddressTextBox.TabIndex = 1;
-            // 
-            // StartupConnectCB
-            // 
-            this.StartupConnectCB.AutoSize = true;
-            this.StartupConnectCB.Location = new System.Drawing.Point(176, 19);
-            this.StartupConnectCB.Name = "StartupConnectCB";
-            this.StartupConnectCB.Size = new System.Drawing.Size(118, 17);
-            this.StartupConnectCB.TabIndex = 4;
-            this.StartupConnectCB.Text = "Connect on Startup";
-            this.StartupConnectCB.UseVisualStyleBackColor = true;
-            this.StartupConnectCB.CheckedChanged += new System.EventHandler(this.StartupConnectCB_CheckedChanged);
-            // 
-            // StartupTestCB
-            // 
-            this.StartupTestCB.AutoSize = true;
-            this.StartupTestCB.Location = new System.Drawing.Point(14, 19);
-            this.StartupTestCB.Name = "StartupTestCB";
-            this.StartupTestCB.Size = new System.Drawing.Size(156, 17);
-            this.StartupTestCB.TabIndex = 3;
-            this.StartupTestCB.Text = "Test Connection on Startup";
-            this.StartupTestCB.UseVisualStyleBackColor = true;
             // 
             // TestConnectionBtn
             // 
@@ -164,6 +111,15 @@
             this.ps3Status.Size = new System.Drawing.Size(0, 13);
             this.ps3Status.TabIndex = 13;
             // 
+            // PS3AddressTextBox
+            // 
+            this.PS3AddressTextBox.Location = new System.Drawing.Point(81, 19);
+            this.PS3AddressTextBox.MaxLength = 15;
+            this.PS3AddressTextBox.Name = "PS3AddressTextBox";
+            this.PS3AddressTextBox.Size = new System.Drawing.Size(107, 20);
+            this.PS3AddressTextBox.TabIndex = 1;
+            this.PS3AddressTextBox.Text = global::PS3DiscordRPCApp.Properties.Settings.Default.PS3_IP;
+            // 
             // groupBox2
             // 
             this.groupBox2.Controls.Add(this.ShareGameOnStartupCB);
@@ -182,6 +138,7 @@
             // ShareGameOnStartupCB
             // 
             this.ShareGameOnStartupCB.AutoSize = true;
+            this.ShareGameOnStartupCB.Checked = global::PS3DiscordRPCApp.Properties.Settings.Default.ShareOnStartup;
             this.ShareGameOnStartupCB.Location = new System.Drawing.Point(14, 42);
             this.ShareGameOnStartupCB.Name = "ShareGameOnStartupCB";
             this.ShareGameOnStartupCB.Size = new System.Drawing.Size(180, 17);
@@ -201,6 +158,7 @@
             // FahrenheitRB
             // 
             this.FahrenheitRB.AutoSize = true;
+            this.FahrenheitRB.Checked = global::PS3DiscordRPCApp.Properties.Settings.Default.TempF;
             this.FahrenheitRB.Location = new System.Drawing.Point(427, 18);
             this.FahrenheitRB.Name = "FahrenheitRB";
             this.FahrenheitRB.Size = new System.Drawing.Size(35, 17);
@@ -212,7 +170,7 @@
             // CelsiusRB
             // 
             this.CelsiusRB.AutoSize = true;
-            this.CelsiusRB.Checked = true;
+            this.CelsiusRB.Checked = global::PS3DiscordRPCApp.Properties.Settings.Default.TempC;
             this.CelsiusRB.Location = new System.Drawing.Point(385, 18);
             this.CelsiusRB.Name = "CelsiusRB";
             this.CelsiusRB.Size = new System.Drawing.Size(36, 17);
@@ -220,6 +178,29 @@
             this.CelsiusRB.TabStop = true;
             this.CelsiusRB.Text = "°C";
             this.CelsiusRB.UseVisualStyleBackColor = true;
+            // 
+            // StartupTestCB
+            // 
+            this.StartupTestCB.AutoSize = true;
+            this.StartupTestCB.Checked = global::PS3DiscordRPCApp.Properties.Settings.Default.TestConnectionOnStartup;
+            this.StartupTestCB.Location = new System.Drawing.Point(14, 19);
+            this.StartupTestCB.Name = "StartupTestCB";
+            this.StartupTestCB.Size = new System.Drawing.Size(156, 17);
+            this.StartupTestCB.TabIndex = 3;
+            this.StartupTestCB.Text = "Test Connection on Startup";
+            this.StartupTestCB.UseVisualStyleBackColor = true;
+            // 
+            // StartupConnectCB
+            // 
+            this.StartupConnectCB.AutoSize = true;
+            this.StartupConnectCB.Checked = global::PS3DiscordRPCApp.Properties.Settings.Default.ConnectOnStartup;
+            this.StartupConnectCB.Location = new System.Drawing.Point(176, 19);
+            this.StartupConnectCB.Name = "StartupConnectCB";
+            this.StartupConnectCB.Size = new System.Drawing.Size(118, 17);
+            this.StartupConnectCB.TabIndex = 4;
+            this.StartupConnectCB.Text = "Connect on Startup";
+            this.StartupConnectCB.UseVisualStyleBackColor = true;
+            this.StartupConnectCB.CheckedChanged += new System.EventHandler(this.StartupConnectCB_CheckedChanged);
             // 
             // groupBox3
             // 
@@ -232,6 +213,28 @@
             this.groupBox3.TabIndex = 15;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Discord Rich Presence Options";
+            // 
+            // DiscordAppIDTextBox
+            // 
+           this.DiscordAppIDTextBox.Enabled = false;
+            this.DiscordAppIDTextBox.Location = new System.Drawing.Point(122, 19);
+            this.DiscordAppIDTextBox.Name = "DiscordAppIDTextBox";
+            this.DiscordAppIDTextBox.Size = new System.Drawing.Size(257, 20);
+            this.DiscordAppIDTextBox.TabIndex = 9;
+            this.DiscordAppIDTextBox.Text = global::PS3DiscordRPCApp.Properties.Settings.Default.CustomDiscordAppID;
+            // 
+            // DiscordAppIDDefaultCB
+            // 
+            this.DiscordAppIDDefaultCB.AutoSize = true;
+            this.DiscordAppIDDefaultCB.Checked = global::PS3DiscordRPCApp.Properties.Settings.Default.UseDefaultDiscordAppID;
+            this.DiscordAppIDDefaultCB.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.DiscordAppIDDefaultCB.Location = new System.Drawing.Point(385, 21);
+            this.DiscordAppIDDefaultCB.Name = "DiscordAppIDDefaultCB";
+            this.DiscordAppIDDefaultCB.Size = new System.Drawing.Size(82, 17);
+            this.DiscordAppIDDefaultCB.TabIndex = 10;
+            this.DiscordAppIDDefaultCB.Text = "Use Default";
+            this.DiscordAppIDDefaultCB.UseVisualStyleBackColor = true;
+            this.DiscordAppIDDefaultCB.CheckedChanged += new System.EventHandler(this.DiscordAppIDDefaultCB_CheckedChanged);
             // 
             // ConfigurationForm
             // 
@@ -252,6 +255,7 @@
             this.Text = "Configuration";
             this.TopMost = true;
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.ConfigurationForm_FormClosed);
+            this.Load += new System.EventHandler(this.ConfigurationForm_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);

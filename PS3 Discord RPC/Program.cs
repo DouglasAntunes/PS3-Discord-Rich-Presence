@@ -6,14 +6,6 @@ namespace PS3DiscordRPCApp
     static class Program
     {
         public static String Version = "0.1";
-        public static Configuration Config = new Configuration();
-        public static DiscordController DiscordController = new DiscordController() {
-            ApplicationID = ( Config.DiscordApplicationID != "" ? Config.DiscordApplicationID : DiscordController.DefaultApplicationID )
-        };
-        public static PS3 PS3 = new PS3()
-        {
-            ConsoleIP = ( Configuration.IsEmpty(Config.PS3_IP) ? "" : Config.PS3_IP )
-        };
         public static MainForm _mainForm;
         private static ConfigurationForm _configurationForm;
         private static AboutForm _aboutForm;

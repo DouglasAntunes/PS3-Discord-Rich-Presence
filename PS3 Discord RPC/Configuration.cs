@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PS3DiscordRPCApp
 {
     class Configuration
     {
+
         public String FileVersion { get; set; }
         //Values
         public String PS3_IP { get; set; } = "";
@@ -20,18 +17,18 @@ namespace PS3DiscordRPCApp
         //
         public string DiscordApplicationID { get; set; } = "";
         public bool UseDefaultDiscordAppID { get; set; } = true;
-        
 
         //Flags
         public bool FirstLaunch { get; set; } = false;
         
         public Configuration()
         {
+
+        }
+
+        public Configuration(bool load)
+        {
             Load();
-            if (IsConfigurationExists() && isLowerVersion())
-            {
-                //Do Migration or Add new default values
-            }
         }
 
         public void Load()
@@ -68,18 +65,33 @@ namespace PS3DiscordRPCApp
 
         public void Save()
         {
-            AddUpdateAppSettings("Config Version", FileVersion);
-            AddUpdateAppSettings("PS3 IP", PS3_IP);
-            AddUpdateAppSettings("Use Celsius for Temperature", UseCelsiusForTemperature);
-            AddUpdateAppSettings("Test Connection on Startup", TestConnectionOnStartup);
-            AddUpdateAppSettings("Connect on Startup", ConnectOnStartup);
-            AddUpdateAppSettings("Enable Rich Presence on Connect", EnableRichPresenceOnConnect);
-            AddUpdateAppSettings("Discord Application ID", DiscordApplicationID);
-            AddUpdateAppSettings("Use Default Discord Application ID", UseDefaultDiscordAppID);
+            
             if(FirstLaunch)
             {
                 FirstLaunch = false;
             }
+            AddUpdateAppSettings("Config Version", FileVersion);
+        }
+
+        public void UpdateInstance()
+        {
+            Load();
+        }
+
+        public void UpdateObject(Configuration newObject)
+        {
+            
+            FirstLaunch = false;
+            FileVersion = newObject.FileVersion;
+            PS3_IP = newObject.PS3_IP;
+            UseCelsiusForTemperature = newObject.UseCelsiusForTemperature;
+
+            TestConnectionOnStartup = newObject.TestConnectionOnStartup;
+            ConnectOnStartup = newObject.ConnectOnStartup;
+            EnableRichPresenceOnConnect = newObject.EnableRichPresenceOnConnect;
+
+            DiscordApplicationID = newObject.DiscordApplicationID;
+            UseDefaultDiscordAppID = newObject.UseDefaultDiscordAppID;
         }
 
         private static void AddUpdateAppSettings(string key, string value)
@@ -118,7 +130,7 @@ namespace PS3DiscordRPCApp
             }
         }
 
-        private static bool GetBoolAppSettings(string key)
+        public static bool GetBoolAppSettings(string key)
         {
             return (ConfigurationManager.AppSettings[key] == "true");
         }
@@ -128,14 +140,9 @@ namespace PS3DiscordRPCApp
             return (FileVersion == Program.Version);
         }
 
-        private bool IsConfigurationExists()
+        public static bool IsConfigurationExists()
         {
             return (ConfigurationManager.AppSettings.Count > 0);
-        }
-
-        public static bool IsEmpty(string s)
-        {
-            return (s == "");
         }
     }
 }

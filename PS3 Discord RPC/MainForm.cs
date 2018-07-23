@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -19,20 +20,21 @@ namespace PS3DiscordRPCApp
             }
         }
 
-        internal DiscordController DiscordController = Program.DiscordController;
-        internal Configuration Config = Program.Config;
-        internal PS3 ps3 = Program.PS3;
+        internal DiscordController DiscordController;
+        internal PS3 ps3;
         
         public MainForm()
         {
             InitializeComponent();
+            ps3 = new PS3();
+            DiscordController = new DiscordController();
             ps3.Updated += Ps3_onUpdate;
             DiscordController.Initialize();
-            RPCSwitch = Config.EnableRichPresenceOnConnect;
-            if (Config.TestConnectionOnStartup)
+            RPCSwitch = Configuration.GetBoolAppSettings("ShareOnStartup");
+            if (Configuration.GetBoolAppSettings("TestConnectionOnStartup"))
             {
                 TestPS3Connection();
-                if (Config.ConnectOnStartup)
+                if (Configuration.GetBoolAppSettings("ConnectOnStartup"))
                 {
                     if(ps3.CurrentStatusFlag == PS3.Status.Tested)
                     {
@@ -42,18 +44,17 @@ namespace PS3DiscordRPCApp
             }
         }
 
-        private void Ps3_onUpdate(object sender, EventArgs e)
-        {
-            UpdateStats();
-        }
+        private void Ps3_onUpdate(object sender, EventArgs e) => UpdateStats();
 
         private void MainForm_Shown(object sender, EventArgs e)
         {
-            if (Config.FirstLaunch)
+            if (!Configuration.IsConfigurationExists())
             {
                 ShowConfigurationForm();
             }
         }
+
+        private void ShowConfigurationForm() => Program.ConfigurationForm.ShowDialog();
 
         private void ConnectBtn_Click(object sender, EventArgs e)
         {
@@ -78,34 +79,23 @@ namespace PS3DiscordRPCApp
             ps3.PowerOff();
         }
 
-        private void ConfigBtn_Click(object sender, EventArgs e)
-        {
-            ShowConfigurationForm();
-        }
+        private void ConfigBtn_Click(object sender, EventArgs e) => ShowConfigurationForm();
 
         private void AboutBtn_Click(object sender, EventArgs e) => Program.AboutForm.ShowDialog();
 
-        private void ShareBtn_Click(object sender, EventArgs e)
-        {
-            RPCSwitch = !RPCSwitch;
-        }
+        private void ShareBtn_Click(object sender, EventArgs e) => RPCSwitch = !RPCSwitch;
 
         private void OnShareSwitch()
         {
-            if (RPCSwitch)
-            {
-                ShareBtn.Text = "Unshare Current Game";
-            }
-            else
-            {
-                ShareBtn.Text = "Share Current Game";
-            }
+            var shareBtnText = RPCSwitch ? "Unshare Current Game" : "Share Current Game";
+            ShareBtn.Text = shareBtnText;
         }
         
         public void OnConfigUpdate()
         {
-            ps3.ConsoleIP = Config.PS3_IP;
-            ps3.TemperatureScale = (Config.UseCelsiusForTemperature ? PS3.TempScale.Celsius : PS3.TempScale.Fahrenheit);
+            var appSettings = ConfigurationManager.AppSettings;
+            ps3.ConsoleIP = appSettings["PS3_IP"];
+            ps3.TemperatureScale = (Configuration.GetBoolAppSettings("TempC") ? PS3.TempScale.Celsius : PS3.TempScale.Fahrenheit);
         }
 
         private void TestPS3Connection()
@@ -195,7 +185,5 @@ namespace PS3DiscordRPCApp
                 }
             }));
         }
-
-        private void ShowConfigurationForm() => Program.ConfigurationForm.ShowDialog();
     }
 }
